@@ -92,16 +92,16 @@ pheatmap(sampleDistMatrix,clustering_distance_rows=sampleDists,clustering_distan
 
 ```{r, message=FALSE}
 #Plot PCA with DESeq2 function
-plotPCA(rld, intgroup = "population")
-plotPCA(vsd, intgroup = "population")
+plotPCA(rld, intgroup = "population", ntop=length(row.names(assay(rld))))
+plotPCA(vsd, intgroup = "population", ntop=length(row.names(assay(vsd))))
 
 #Plot labelled PCA
-pcaData <- plotPCA(rld, intgroup = "population", returnData=TRUE)
+pcaData <- plotPCA(rld, intgroup = "population", returnData=TRUE, ntop=length(row.names(assay(rld))))
 percentVar <- round(100 * attr(pcaData, "percentVar"))
 label<- colnames(dds)
 ggplot(pcaData, aes(PC1, PC2, color=population, label=colnames(dds))) + geom_point(size=3) + xlab(paste0("PC1: ",percentVar[1],"% variance")) + ylab(paste0("PC2: ",percentVar[2],"% variance")) + coord_fixed()+ geom_text(size=2.5, nudge_x = 1, nudge_y = 1, check_overlap = T)
 
-pcaData <- plotPCA(vsd, intgroup = "population", returnData=TRUE)
+pcaData <- plotPCA(vsd, intgroup = "population", returnData=TRUE, ntop=length(row.names(assay(vsd))))
 percentVar <- round(100 * attr(pcaData, "percentVar"))
 label<- colnames(dds)
 ggplot(pcaData, aes(PC1, PC2, color=population, label=colnames(dds))) + geom_point(size=3) + xlab(paste0("PC1: ",percentVar[1],"% variance")) + ylab(paste0("PC2: ",percentVar[2],"% variance")) + coord_fixed()+ geom_text(size=2.5, nudge_x = 1, nudge_y = 1, check_overlap = T)

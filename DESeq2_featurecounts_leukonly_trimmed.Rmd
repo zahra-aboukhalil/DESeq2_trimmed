@@ -11,6 +11,7 @@ library("RColorBrewer")
 library("AnnotationDbi")
 library("org.Hs.eg.db")
 library("ggplot2")
+library("matrixStats")
 ```
 
 #Read in Data 
@@ -87,3 +88,48 @@ pcaData <- plotPCA(vsd, intgroup = "population", returnData=TRUE, ntop=500)
 percentVar <- round(100 * attr(pcaData, "percentVar"))
 ggplot(pcaData, aes(PC1, PC2, color=population, label=annotations_replicates_leukaemic$replicate)) + geom_point(size=3) + xlab(paste0("PC1: ",percentVar[1],"% variance")) + ylab(paste0("PC2: ",percentVar[2],"% variance")) + coord_fixed()+ geom_text(size=2.5, nudge_x = 3, nudge_y = 3, check_overlap = T)
 ```
+
+#Variant Genes
+
+```{r, message=FALSE}
+#vsd
+
+#Calculate variance of genes in vsd data and annotate to vsd
+rv <- rowVars(assay(vsd))
+vsd_rv<- cbind(assay(vsd), rv)
+
+#Order by highest variance
+vsd_rv<- as.data.frame(vsd_rv)
+vsd_rv<- vsd_rv[order(vsd_rv$rv, decreasing = T),]
+
+#Annotate with gene symbol
+vsd_rv$symbol<- mapIds(org.Hs.eg.db,keys=row.names(vsd_rv),column="SYMBOL",keytype="ENSEMBL",multiVals="first")
+
+#Look at top variant genes and write to table
+vsd_rv[1:50, 36:37]
+write.csv(vsd_rv, file="DESeq2_featurecounts_leukonly_trimmed_vsd_rv.csv")
+
+#rld
+
+#Calculate variance of genes in rld data and annotate to rld
+rv <- rowVars(assay(rld))
+rld_rv<- cbind(assay(rld), rv)
+
+#Order by highest variance
+rld_rv<- as.data.frame(rld_rv)
+rld_rv<- rld_rv[order(rld_rv$rv, decreasing = T),]
+
+#Annotate with gene symbol
+rld_rv$symbol<- mapIds(org.Hs.eg.db,keys=row.names(rld_rv),column="SYMBOL",keytype="ENSEMBL",multiVals="first")
+
+#Look at top variant genes and write to table
+rld_rv[1:50, 36:37]
+write.csv(rld_rv, file="DESeq2_featurecounts_leukonly_trimmed_rld_rv.csv")
+
+#Identify genes with SD above 6 (i.e. weird hump on rlog normalised plot)
+rld_rv$sd<- sqrt(rld_rv$rv)
+rld_rv_sd6<- rld_rv[rld_rv$sd>6,]
+rld_rv_sd6[,36:38]
+
+```
+

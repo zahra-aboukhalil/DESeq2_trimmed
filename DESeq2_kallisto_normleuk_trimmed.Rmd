@@ -56,22 +56,22 @@ meanSdPlot(assay(vsd))
 
 ```{r, message=FALSE}
 #Plot PCA with ggplots function rld
-pcaData <- plotPCA(rld, intgroup = c( "condition", "population"), returnData=TRUE)
+pcaData <- plotPCA(rld, intgroup = c( "condition", "population"), returnData=TRUE, ntop=length(row.names(assay(rld))))
 percentVar <- round(100 * attr(pcaData, "percentVar"))
 ggplot(pcaData, aes(PC1, PC2, color=population, shape=condition)) + geom_point(size=3) + xlab(paste0("PC1: ",percentVar[1],"% variance")) + ylab(paste0("PC2: ",percentVar[2],"% variance")) + coord_fixed()
 
 #Plot PCA with ggplots function vsd
-pcaData <- plotPCA(vsd, intgroup = c( "condition", "population"), returnData=TRUE)
+pcaData <- plotPCA(vsd, intgroup = c( "condition", "population"), returnData=TRUE, ntop=length(row.names(assay(vsd))))
 percentVar <- round(100 * attr(pcaData, "percentVar"))
 ggplot(pcaData, aes(PC1, PC2, color=population, shape=condition)) + geom_point(size=3) + xlab(paste0("PC1: ",percentVar[1],"% variance")) + ylab(paste0("PC2: ",percentVar[2],"% variance")) + coord_fixed()
 
 #Plot PCA with ggplots function rld 500 variant genes
-pcaData <- plotPCA(rld, intgroup = c( "condition", "population"), returnData=TRUE, ntop=10000)
+pcaData <- plotPCA(rld, intgroup = c( "condition", "population"), returnData=TRUE, ntop=500)
 percentVar <- round(100 * attr(pcaData, "percentVar"))
 ggplot(pcaData, aes(PC1, PC2, color=population, shape=condition)) + geom_point(size=3) + xlab(paste0("PC1: ",percentVar[1],"% variance")) + ylab(paste0("PC2: ",percentVar[2],"% variance")) + coord_fixed()
 
 #Plot PCA with ggplots function vsd 500 variant genes
-pcaData <- plotPCA(vsd, intgroup = c( "condition", "population"), returnData=TRUE, ntop=10000)
+pcaData <- plotPCA(vsd, intgroup = c( "condition", "population"), returnData=TRUE, ntop=500)
 percentVar <- round(100 * attr(pcaData, "percentVar"))
 ggplot(pcaData, aes(PC1, PC2, color=population, shape=condition)) + geom_point(size=3) + xlab(paste0("PC1: ",percentVar[1],"% variance")) + ylab(paste0("PC2: ",percentVar[2],"% variance")) + coord_fixed()
 ```
@@ -233,7 +233,7 @@ tsne_df<-data.frame(tsne$Y)
 tsne_df<- cbind(tsne_df, annotations_replicates)
 
 #Plot tsne
-ggplot(tsne_df, aes(X1, X2, color=population, shape=condition, label=replicate)) + geom_point(size=2) + xlab("X1") + ylab("X2")+ geom_text(size=2.5, nudge_x = 0.3, nudge_y = 0.2, check_overlap = T)
+ggplot(tsne_df, aes(X1, X2, color=population, shape=condition, label=replicate)) + geom_point(size=2) + xlab("X1") + ylab("X2")+ geom_text(size=2.5, nudge_x = 1, nudge_y = 1, check_overlap = T)
 
 #Run tsne on all normal and leukaemic populations LRT genes
 vsd.t<- t(assay(vsd.LRT500))
@@ -249,5 +249,5 @@ tsne_df<-data.frame(tsne$Y)
 tsne_df<- cbind(tsne_df, annotations_replicates)
 
 #Plot tsne of LRT genes
-ggplot(tsne_df, aes(X1, X2, color=population, shape=condition, label=replicate)) + geom_point(size=2) + xlab("X1") + ylab("X2")+ geom_text(size=2.5, nudge_x = 0.3, nudge_y = 0.2, check_overlap = T)
+ggplot(tsne_df, aes(X1, X2, color=population, shape=condition, label=replicate)) + geom_point(size=2) + xlab("X1") + ylab("X2")+ geom_text(size=2.5, nudge_x = 1, nudge_y = 1, check_overlap = T)
 ```
