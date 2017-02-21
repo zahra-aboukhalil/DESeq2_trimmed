@@ -1,0 +1,89 @@
+---
+title: "DESeq2_featurecounts_leukonly_trimmed"
+output: html_document
+---
+```{r, message=FALSE}
+#Load packages
+library("DESeq2")
+library("vsn")
+library("pheatmap")
+library("RColorBrewer")
+library("AnnotationDbi")
+library("org.Hs.eg.db")
+library("ggplot2")
+```
+
+#Read in Data 
+
+```{r, message=FALSE}
+#Read in counts table from featurecounts and annotations file
+genes_counts<- read.delim("genes_featurecounts_trimmed.tsv", row.names=1)
+genes_counts<- na.omit(genes_counts) 
+
+annotations<- read.csv("sample_annotation.csv", row.names=1)
+
+#Flip annotations and merge with gene_counts
+rownames(annotations)<- colnames(genes_counts)
+annotations.t<- t(annotations)
+genes_counts<- rbind(annotations.t[1,], genes_counts)
+
+#Filter for only leukaemic samples
+genes_counts_leukaemic<- genes_counts[,(grep("leukaemic", genes_counts))]
+genes_counts_leukaemic<- genes_counts_leukaemic[-1,]
+genes_counts_leukaemic <- sapply(genes_counts_leukaemic, as.numeric)
+rownames(genes_counts_leukaemic)<- rownames(genes_counts[2:(nrow(genes_counts)),])
+
+#Create colData
+annotations_leukaemic<- annotations[annotations$condition=="leukaemic",]
+colData <- annotations_leukaemic[,2, drop=F]
+
+#Creat DESeq Dataset
+dds <- DESeqDataSetFromMatrix(countData = genes_counts_leukaemic, colData = colData, design=~population)
+
+#Filter to remove lowly expressed genes
+dds <- dds[ rowSums(counts(dds)) > 5, ]
+
+#Read in replicate annotations and add to annotations
+replicates<- read.csv("sample_annotation_replicates.csv", row.names=1)
+rownames(replicates)<- colnames(genes_counts)
+annotations_replicates<- cbind(annotations, replicates)
+annotations_replicates_leukaemic<- annotations_replicates[annotations_replicates$condition=="leukaemic",]
+```
+
+#Normalisation
+
+```{r, cache=TRUE, message=FALSE}
+#VST transformation
+vsd <- vst(dds, blind=FALSE)
+
+#rlog transformation
+rld <- rlog(dds, blind=FALSE)
+
+#Plot effect of transformation
+par(mfcol = c(1,3))
+meanSdPlot(log2(counts(dds) + 1))
+meanSdPlot(assay(rld))
+meanSdPlot(assay(vsd))
+```
+
+#PCA
+
+```{r, message=FALSE}
+#Plot labelled PCA
+pcaData <- plotPCA(rld, intgroup = "population", returnData=TRUE, ntop=length(row.names(assay(vsd))))
+percentVar <- round(100 * attr(pcaData, "percentVar"))
+ggplot(pcaData, aes(PC1, PC2, color=population, label=annotations_replicates_leukaemic$replicate)) + geom_point(size=3) + xlab(paste0("PC1: ",percentVar[1],"% variance")) + ylab(paste0("PC2: ",percentVar[2],"% variance")) + coord_fixed()+ geom_text(size=2.5, nudge_x = 3, nudge_y = 3, check_overlap = T)
+
+pcaData <- plotPCA(vsd, intgroup = "population", returnData=TRUE, ntop=length(row.names(assay(vsd))))
+percentVar <- round(100 * attr(pcaData, "percentVar"))
+ggplot(pcaData, aes(PC1, PC2, color=population, label=annotations_replicates_leukaemic$replicate)) + geom_point(size=3) + xlab(paste0("PC1: ",percentVar[1],"% variance")) + ylab(paste0("PC2: ",percentVar[2],"% variance")) + coord_fixed()+ geom_text(size=2.5, nudge_x = 3, nudge_y = 3, check_overlap = T)
+
+#Plot labelled PCA
+pcaData <- plotPCA(rld, intgroup = "population", returnData=TRUE, ntop=500)
+percentVar <- round(100 * attr(pcaData, "percentVar"))
+ggplot(pcaData, aes(PC1, PC2, color=population, label=annotations_replicates_leukaemic$replicate)) + geom_point(size=3) + xlab(paste0("PC1: ",percentVar[1],"% variance")) + ylab(paste0("PC2: ",percentVar[2],"% variance")) + coord_fixed()+ geom_text(size=2.5, nudge_x = 3, nudge_y = 3, check_overlap = T)
+
+pcaData <- plotPCA(vsd, intgroup = "population", returnData=TRUE, ntop=500)
+percentVar <- round(100 * attr(pcaData, "percentVar"))
+ggplot(pcaData, aes(PC1, PC2, color=population, label=annotations_replicates_leukaemic$replicate)) + geom_point(size=3) + xlab(paste0("PC1: ",percentVar[1],"% variance")) + ylab(paste0("PC2: ",percentVar[2],"% variance")) + coord_fixed()+ geom_text(size=2.5, nudge_x = 3, nudge_y = 3, check_overlap = T)
+```
